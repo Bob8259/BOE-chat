@@ -1,0 +1,5 @@
+# 敏感文件 - 禁止 AI 读取
+.env
+.env.local
+.env.production
+.env.development

@@ -5,16 +5,20 @@ export const runtime = 'edge';
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, model, baseUrl, apiKey, stream = false } = await req.json();
+    const { messages, model, stream = false } = await req.json();
+
+    // 从环境变量读取，不从前端传入
+    const apiKey = process.env.API_KEY;
+    const baseUrl = process.env.API_BASE_URL || 'https://api.openai.com/v1';
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API Key is required.' },
-        { status: 400 }
+        { error: '服务器未配置 API Key' },
+        { status: 500 }
       );
     }
 
-    const cleanUrl = (baseUrl || 'https://api.openai.com/v1').replace(/\/$/, '');
+    const cleanUrl = baseUrl.replace(/\/$/, '');
 
     const response = await axios.post(
       `${cleanUrl}/chat/completions`,

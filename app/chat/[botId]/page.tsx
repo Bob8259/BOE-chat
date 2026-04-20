@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { getModelById } from '@/app/lib/models';
-import { API_CONFIG, SESSIONS_KEY } from '@/app/lib/config';
+import { SESSIONS_KEY } from '@/app/lib/config';
 import { ChatInput } from '@/app/components/ChatInput';
 import { ChatMessage } from '@/app/components/ChatMessage';
 
@@ -88,8 +88,6 @@ export default function ChatPage() {
           body: JSON.stringify({
             messages: newMessages,
             model: botId,
-            baseUrl: API_CONFIG.baseUrl,
-            apiKey: API_CONFIG.apiKey,
             stream: true,
           }),
         });
@@ -141,8 +139,6 @@ export default function ChatPage() {
           body: JSON.stringify({
             messages: newMessages,
             model: botId,
-            baseUrl: API_CONFIG.baseUrl,
-            apiKey: API_CONFIG.apiKey,
             stream: false,
           }),
         });
