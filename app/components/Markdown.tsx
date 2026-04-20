@@ -3,8 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useEffect, useState } from 'react';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MarkdownProps {
   content: string;
@@ -12,29 +11,9 @@ interface MarkdownProps {
 }
 
 export const Markdown = ({ content, role = 'assistant' }: MarkdownProps) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          setIsDarkMode(document.documentElement.classList.contains('dark'));
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div className={`prose max-w-none prose-sm sm:prose-base prose-pre:p-0 ${
-      role === 'user' 
-        ? (isDarkMode ? '' : 'prose-invert') 
-        : (isDarkMode ? 'prose-invert' : '')
+    <div className={`prose prose-sm max-w-none prose-pre:p-0 ${
+      role === 'user' ? 'prose-invert' : ''
     }`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -47,12 +26,12 @@ export const Markdown = ({ content, role = 'assistant' }: MarkdownProps) => {
                 {...rest}
                 PreTag="div"
                 language={match[1]}
-                style={isDarkMode ? oneDark : oneLight}
+                style={oneLight}
               >
                 {String(children).replace(/\n$/, '')}
               </SyntaxHighlighter>
             ) : (
-              <code {...rest} className={className}>
+              <code {...rest} className={`${className || ''} bg-[#F0F0F0] px-1.5 py-0.5 rounded text-sm`}>
                 {children}
               </code>
             );
@@ -64,4 +43,3 @@ export const Markdown = ({ content, role = 'assistant' }: MarkdownProps) => {
     </div>
   );
 };
-
