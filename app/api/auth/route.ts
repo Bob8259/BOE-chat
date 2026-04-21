@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { generateToken } from '@/app/lib/token';
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (email === validEmail && password === validPassword) {
-    const token = Buffer.from(`${email}:${Date.now()}`).toString('base64');
+    const token = await generateToken(email);
     return NextResponse.json({ token, success: true });
   }
 

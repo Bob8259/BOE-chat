@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { verifyToken } from '@/app/lib/token';
 
 export const runtime = 'edge';
 
 export async function POST(req: NextRequest) {
   try {
+    // 验证 token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: '未提供认证凭据' }, { status: 401 });
+    }
+
+    const token = authHeader.slice(7);
+    const verification = await verifyToken(token);
+    if (!verification.valid) {
+      return NextResponse.json({ error: verification.error }, { status: 401 });
+    }
+
+    // 解析请求
     const { messages, model, stream = false } = await req.json();
 
-    // 从环境变量读取，不从前端传入
+    // 从环境变量读取 API 配置
     const apiKey = process.env.API_KEY;
     const baseUrl = process.env.API_BASE_URL || 'https://api.openai.com/v1';
 

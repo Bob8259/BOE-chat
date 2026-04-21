@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { getModelById } from '@/app/lib/models';
 import { SESSIONS_KEY } from '@/app/lib/config';
+import { getToken, logout } from '@/app/lib/auth';
 import { ChatInput } from '@/app/components/ChatInput';
 import { ChatMessage } from '@/app/components/ChatMessage';
 
@@ -82,9 +83,13 @@ export default function ChatPage() {
     try {
       if (bot?.capabilities.stream) {
         // Streaming response
+        const token = getToken();
         const res = await fetch('/api/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({
             messages: newMessages,
             model: botId,
@@ -94,6 +99,10 @@ export default function ChatPage() {
 
         if (!res.ok) {
           const err = await res.json();
+          if (res.status === 401) {
+            logout();
+            return;
+          }
           throw new Error(err.error || '请求失败');
         }
 
@@ -133,9 +142,13 @@ export default function ChatPage() {
         saveSession(finalMessages);
       } else {
         // Non-streaming response
+        const token = getToken();
         const res = await fetch('/api/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({
             messages: newMessages,
             model: botId,
@@ -145,6 +158,10 @@ export default function ChatPage() {
 
         if (!res.ok) {
           const err = await res.json();
+          if (res.status === 401) {
+            logout();
+            return;
+          }
           throw new Error(err.error || '请求失败');
         }
 
@@ -154,8 +171,9 @@ export default function ChatPage() {
         setMessages(finalMessages);
         saveSession(finalMessages);
       }
-    } catch (error: any) {
-      const errorMsg = [...newMessages, { role: 'assistant' as const, content: `错误: ${error.message}` }];
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '请求失败';
+      const errorMsg = [...newMessages, { role: 'assistant' as const, content: `错误: ${errorMessage}` }];
       setMessages(errorMsg);
     } finally {
       setIsLoading(false);
